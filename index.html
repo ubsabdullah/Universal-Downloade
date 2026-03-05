@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Universal Downloader | تصميم خرافي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --primary: #6366f1; --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); }
+        
+        /* تعريف الثيمات العشرة */
+        .theme-1 { --bg: #0f172a; --primary: #3b82f6; } /* Dark Blue */
+        .theme-2 { --bg: #000000; --primary: #f0f; }    /* Cyberpunk */
+        .theme-3 { --bg: #064e3b; --primary: #10b981; } /* Emerald */
+        .theme-4 { --bg: #450a0a; --primary: #ef4444; } /* Blood Red */
+        .theme-5 { --bg: #2e1065; --primary: #a855f7; } /* Royal Purple */
+        .theme-6 { --bg: #1c1917; --primary: #f59e0b; } /* Amber Gold */
+        .theme-7 { --bg: #f8fafc; --primary: #334155; color: #1e293b !important; } /* Soft Light */
+        .theme-8 { --bg: #111827; --primary: #06b6d4; } /* Neon Cyan */
+        .theme-9 { --bg: #171717; --primary: #ffffff; } /* Minimalist White/Black */
+        .theme-10 { --bg: #4c1d95; --primary: #f472b6; } /* Candy */
+
+        body { background: var(--bg); color: white; transition: 0.5s; min-height: 100vh; font-family: sans-serif; }
+        .glass { background: var(--card); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .active-btn { background: var(--primary); }
+    </style>
+</head>
+<body class="theme-1 flex flex-col items-center p-5">
+
+    <div class="glass w-full max-w-2xl p-8 rounded-3xl shadow-2xl mt-10">
+        <h1 class="text-3xl font-black text-center mb-8">Universal <span style="color: var(--primary)">Downloader</span></h1>
+        
+        <div class="grid grid-cols-2 gap-4 mb-8 text-sm">
+            <div class="p-3 bg-white/5 rounded-xl border border-white/10">👤 المطور: ubsabdullah</div>
+            <div class="p-3 bg-white/5 rounded-xl border border-white/10">🌐 اللغة: العربية</div>
+            <select onchange="document.body.className = this.value + ' flex flex-col items-center p-5'" class="p-3 bg-white/10 rounded-xl outline-none col-span-2">
+                <option value="theme-1">اختر الثيم: Default Dark</option>
+                <option value="theme-2">الثيم 2: Cyberpunk</option>
+                <option value="theme-3">الثيم 3: Emerald City</option>
+                <option value="theme-4">الثيم 4: Deep Red</option>
+                <option value="theme-5">الثيم 5: Purple Rain</option>
+                <option value="theme-6">الثيم 6: Midnight Sun</option>
+                <option value="theme-7">الثيم 7: Pure Light</option>
+                <option value="theme-8">الثيم 8: Neon Ocean</option>
+                <option value="theme-9">الثيم 9: Dark Mono</option>
+                <option value="theme-10">الثيم 10: Sweet Candy</option>
+            </select>
+        </div>
+
+        <input id="urlInput" type="text" placeholder="انسخ رابط يوتيوب، تيك توك، انستا..." class="w-full p-4 rounded-2xl bg-black/20 border border-white/10 focus:border-[var(--primary)] outline-none transition mb-4">
+        
+        <button onclick="analyze()" class="w-full p-4 active-btn rounded-2xl font-bold shadow-lg hover:opacity-80 transition">تحليل الرابط واستخراج الجودات</button>
+
+        <div id="result" class="mt-8 hidden">
+            <img id="thumb" class="w-full rounded-2xl mb-4 shadow-lg">
+            <h3 id="title" class="font-bold mb-4"></h3>
+            <div id="downloadButtons" class="space-y-2"></div>
+        </div>
+    </div>
+
+    <script>
+        async function analyze() {
+            const url = document.getElementById('urlInput').value;
+            if(!url) return alert("ضع رابطاً أولاً!");
+            
+            // ملاحظة: هنا يجب استبدال الرابط برابط الـ API الخاص بك بعد رفعه
+            alert("تم إرسال الطلب للمحرك... (سيعمل بمجرد ربط الـ Backend)");
+        }
+    </script>
+</body>
+</html>
+
