@@ -318,15 +318,10 @@
 
                 if (!response.ok) throw new Error(t('analyze_error'));
 
-                const data = await response.blob();
-                let tempUrl = window.URL.createObjectURL(data)
-                const a = document.createElement('a');
-                a.href = tempUrl;
-                a.download = "testing.mp4";
-                document.body.appendChild(a);
-                a.click()
-                document.body.removeChild(a)
-                window.URL.revokeObjectURL(tempUrl);
+                const data = await response.json();
+                if (!data.download_url) throw new Error(t('download_error'));
+                iconEl.innerHTML = '✅';
+                iconEl.style.opacity = '1';
                 
             } catch (error) {
                 // Update THIS card's icon to show failure
