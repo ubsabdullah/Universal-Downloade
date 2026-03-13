@@ -2,7 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Universal Downloader | تصميم خرافي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <title>UB-SASA Downloads | تحميلات يو بس ساسا</title> -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --primary: #6366f1; --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); }
@@ -21,51 +22,342 @@
 
         body { background: var(--bg); color: white; transition: 0.5s; min-height: 100vh; font-family: sans-serif; }
         .glass { background: var(--card); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .active-btn { background: var(--primary); }
+        .active-btn { background: var(--primary); color: black; }
     </style>
 </head>
 <body class="theme-1 flex flex-col items-center p-5">
 
     <div class="glass w-full max-w-2xl p-8 rounded-3xl shadow-2xl mt-10">
-        <h1 class="text-3xl font-black text-center mb-8">Universal <span style="color: var(--primary)">Downloader</span></h1>
+        <h1 id="mainHeading" class="text-3xl font-black text-center mb-8"></h1>
         
         <div class="grid grid-cols-2 gap-4 mb-8 text-sm">
-            <div class="p-3 bg-white/5 rounded-xl border border-white/10">👤 المطور: ubsabdullah</div>
-            <div class="p-3 bg-white/5 rounded-xl border border-white/10">🌐 اللغة: العربية</div>
-            <select onchange="document.body.className = this.value + ' flex flex-col items-center p-5'" class="p-3 bg-white/10 rounded-xl outline-none col-span-2">
-                <option value="theme-1">اختر الثيم: Default Dark</option>
-                <option value="theme-2">الثيم 2: Cyberpunk</option>
-                <option value="theme-3">الثيم 3: Emerald City</option>
-                <option value="theme-4">الثيم 4: Deep Red</option>
-                <option value="theme-5">الثيم 5: Purple Rain</option>
-                <option value="theme-6">الثيم 6: Midnight Sun</option>
-                <option value="theme-7">الثيم 7: Pure Light</option>
-                <option value="theme-8">الثيم 8: Neon Ocean</option>
-                <option value="theme-9">الثيم 9: Dark Mono</option>
-                <option value="theme-10">الثيم 10: Sweet Candy</option>
+            <div class="p-3 bg-white/5 rounded-xl border border-white/10" id="developers"></div>
+            <div class="p-3 bg-white/5 rounded-xl border border-white/10" id="language"></div>
+
+            <!-- Language Selector -->
+            <select id="langSelector" onchange="switchLanguage(this.value)" class="p-3 rounded-xl outline-none active-btn">
+            </select>
+
+            <!-- Theme Selector -->
+            <select onchange="document.body.className = this.value + ' flex flex-col items-center p-5'" class="p-3 rounded-xl outline-none active-btn">
+                <option value="theme-1">Default Dark</option>
+                <option value="theme-2">Cyberpunk</option>
+                <option value="theme-3">Emerald City</option>
+                <option value="theme-4">Deep Red</option>
+                <option value="theme-5">Purple Rain</option>
+                <option value="theme-6">Midnight Sun</option>
+                <option value="theme-7">Pure Light</option>
+                <option value="theme-8">Neon Ocean</option>
+                <option value="theme-9">Dark Mono</option>
+                <option value="theme-10">Sweet Candy</option>
             </select>
         </div>
 
-        <input id="urlInput" type="text" placeholder="انسخ رابط يوتيوب، تيك توك، انستا..." class="w-full p-4 rounded-2xl bg-black/20 border border-white/10 focus:border-[var(--primary)] outline-none transition mb-4">
+        <input id="urlInput" type="text" class="w-full p-4 rounded-2xl bg-black/20 border border-white/10 focus:border-[var(--primary)] outline-none transition mb-4">
         
-        <button onclick="analyze()" class="w-full p-4 active-btn rounded-2xl font-bold shadow-lg hover:opacity-80 transition">تحليل الرابط واستخراج الجودات</button>
+        <button id="analyzeBtn" onclick="analyze()" class="w-full p-4 active-btn rounded-2xl font-bold shadow-lg hover:opacity-80 transition"></button>
 
+        <!-- Loading Spinner -->
+        <div id="loading" class="mt-8 hidden flex flex-col items-center gap-3">
+            <div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.2);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+            <p id="analyzingText" class="text-sm opacity-70"></p>
+        </div>
+
+        <!-- Results -->
         <div id="result" class="mt-8 hidden">
             <img id="thumb" class="w-full rounded-2xl mb-4 shadow-lg">
-            <h3 id="title" class="font-bold mb-4"></h3>
-            <div id="downloadButtons" class="space-y-2"></div>
+            <h3 id="title" class="font-bold mb-4 text-lg"></h3>
+            <p id="chooseQuality" class="text-sm opacity-60 mb-3"></p>
+            <div id="formatCards" class="grid grid-cols-1 gap-3"></div>
+        </div>
+
+        <!-- Download Status -->
+        <div id="downloadStatus" class="mt-4 hidden">
+            <div class="p-4 rounded-2xl border border-white/10 bg-white/5 flex items-center gap-3">
+                <div id="downloadSpinner" style="width:24px;height:24px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+                <span id="downloadText" class="text-sm"></span>
+            </div>
         </div>
     </div>
 
-    <script>
-        async function analyze() {
-            const url = document.getElementById('urlInput').value;
-            if(!url) return alert("ضع رابطاً أولاً!");
-            
-            // ملاحظة: هنا يجب استبدال الرابط برابط الـ API الخاص بك بعد رفعه
-            alert("تم إرسال الطلب للمحرك... (سيعمل بمجرد ربط الـ Backend)");
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .format-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: all 0.25s ease;
         }
+        .format-card:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .format-card:active { transform: scale(0.98); }
+        .format-card.downloading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .format-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            background: var(--primary);
+            color: #000;
+        }
+        .format-ext {
+            font-size: 12px;
+            opacity: 0.5;
+            text-transform: uppercase;
+        }
+        .download-icon {
+            font-size: 18px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .format-card:hover .download-icon { opacity: 1; }
+
+    </style>
+
+    <script>
+        // ===== i18n State =====
+        let allLangs = {};
+        let currentLang = 'arabic';
+        let currentUrl = '';
+        let title = ""
+
+
+        // Helper: get translated string with optional {placeholder} replacement
+        function t(key, replacements = {}) {
+            let str = (allLangs[currentLang] && allLangs[currentLang][key]) || key;
+            for (const [k, v] of Object.entries(replacements)) {
+                str = str.replace(`{${k}}`, v);
+            }
+            return str;
+        }
+
+        // Apply current language to all static UI elements
+        function applyLanguage() {
+            const lang = allLangs[currentLang];
+            if (!lang) return;
+
+            // Direction
+            document.documentElement.dir = lang.dir || 'ltr';
+            document.documentElement.lang = lang.dir === 'rtl' ? 'ar' : 'en';
+
+            // Title & heading
+            document.title = lang.title;
+            document.getElementById('mainHeading').innerHTML =
+                `<span style="color: var(--primary)">${lang.heading_primary}</span> | ${lang.heading_secondary}`;
+
+            // Info cards
+            document.getElementById('developers').textContent = lang.developer;
+            document.getElementById('language').textContent = lang.language;
+
+            // Input & buttons
+            document.getElementById('urlInput').placeholder = lang.url_placeholder;
+            document.getElementById('analyzeBtn').textContent = lang.analyze_button;
+            document.getElementById('analyzingText').textContent = lang.analyzing;
+            document.getElementById('chooseQuality').textContent = lang.result_title;
+        }
+
+        // Build language selector options
+        function buildLangSelector() {
+            const sel = document.getElementById('langSelector');
+            sel.innerHTML = '';
+            const langNames = {
+                arabic: '🇸🇦 العربية',
+                english: '🇬🇧 English'
+            };
+            for (const key of Object.keys(allLangs)) {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = langNames[key] || key;
+                if (key === currentLang) opt.selected = true;
+                sel.appendChild(opt);
+            }
+        }
+
+        // Switch language
+        function switchLanguage(langKey) {
+            if (!allLangs[langKey]) return;
+            currentLang = langKey;
+            localStorage.setItem('ub_sasa_lang', langKey);
+            applyLanguage();
+        }
+
+        // Load languages from backend
+        async function loadLanguages() {
+            try {
+                const response = await fetch('/langs', { method: 'post' });
+                if (!response.ok) throw new Error('Failed to load languages');
+                allLangs = await response.json();
+
+                // Restore saved language preference
+                const saved = localStorage.getItem('ub_sasa_lang');
+                if (saved && allLangs[saved]) {
+                    currentLang = saved;
+                }
+
+                buildLangSelector();
+                applyLanguage();
+            } catch (error) {
+                console.error('Language load error:', error);
+                // Fallback: set some defaults so the app is still usable
+                document.getElementById('analyzeBtn').textContent = 'Analyze';
+                document.getElementById('urlInput').placeholder = 'Paste a video link...';
+            }
+        }
+
+        // ===== Core App Logic =====
+
+        async function analyze() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) return alert(t('empty_url'));
+
+            currentUrl = url;
+
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('downloadStatus').classList.add('hidden');
+            document.getElementById('analyzeBtn').disabled = true;
+            document.getElementById('analyzeBtn').style.opacity = '0.5';
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                if (!response.ok) throw new Error(t('analyze_error'));
+
+                const data = await response.json();
+                title = data.title || 'video';
+                displayFormats(data);
+            } catch (error) {
+                alert(t('error_prefix') + ': ' + error.message);
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('analyzeBtn').disabled = false;
+                document.getElementById('analyzeBtn').style.opacity = '1';
+            }
+        }
+
+        function displayFormats(data) {
+            const thumb = document.getElementById('thumb');
+            const title = document.getElementById('title');
+
+            if (data.thumbnail) {
+                thumb.src = data.thumbnail;
+                thumb.classList.remove('hidden');
+            } else {
+                thumb.classList.add('hidden');
+            }
+
+            title.textContent = data.title || t('no_title');
+
+            const container = document.getElementById('formatCards');
+            container.innerHTML = '';
+
+            if (!data.formats || data.formats.length === 0) {
+                container.innerHTML = `<p class="text-sm opacity-50 text-center py-4">${t('no_formats')}</p>`;
+                document.getElementById('result').classList.remove('hidden');
+                return;
+            }
+
+            data.formats.forEach((fmt) => {
+                const card = document.createElement('div');
+                card.className = 'format-card';
+                card.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span class="format-badge">${fmt.quality}</span>
+                        <span class="format-ext">${fmt.ext}</span>
+                    </div>
+                    <span class="download-icon">⬇️</span>
+                `;
+                card.addEventListener('click', () => downloadVideo(card, fmt));
+                container.appendChild(card);
+            });
+
+            document.getElementById('result').classList.remove('hidden');
+        }
+
+        async function downloadVideo(card, fmt) {
+            // Disable only this card
+            card.classList.add('downloading');
+
+            // Replace the download icon with a per-card spinner + status
+            const iconEl = card.querySelector('.download-icon');
+            const originalIcon = iconEl.innerHTML;
+            iconEl.innerHTML = `<div style="width:18px;height:18px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;"></div>`;
+
+            // Show global status too for the latest download
+            const statusEl = document.getElementById('downloadStatus');
+            const textEl = document.getElementById('downloadText');
+            const spinnerEl = document.getElementById('downloadSpinner');
+            statusEl.classList.remove('hidden');
+            textEl.textContent = t('download_status', { quality: fmt.quality });
+            spinnerEl.style.display = 'block';
+
+
+            console.log(fmt)
+            try {
+                let fmtCopy = { ...fmt, url: currentUrl, title: title }
+                const response = await fetch("/download_video", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(fmtCopy)
+                })
+
+                if (!response.ok) throw new Error(t('download_error'));
+                
+                let data = await response.json()
+                console.log("KJHAJSADLKASJDLKSAJDKSAJD ", data)
+                let filePath = data.filePath
+                console.log(filePath)
+                const a = document.createElement('a');
+                // a.href = `${window.location.href}download_video?url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent(title)}`;
+                a.href = filePath
+                console.log(a.href)
+                document.body.appendChild(a);
+                a.click()
+                document.body.removeChild(a)
+                // card.getElementByClassName('download-icon')[0].innerHTML = '✅';
+                iconEl.innerHTML = '✅';
+                iconEl.style.opacity = '1';
+
+
+            } catch (error) {
+                // Update THIS card's icon to show failure
+                iconEl.innerHTML = '❌';
+                iconEl.style.opacity = '1';
+            } finally {
+                card.classList.remove('downloading');
+                card.style.pointerEvents = 'none'; // prevent re-clicking a finished download
+
+                // Only hide global status if no other downloads are in progress
+                const stillDownloading = document.querySelectorAll('.format-card.downloading').length;
+                if (stillDownloading === 0) {
+                    textEl.textContent = t('download_success');
+                    spinnerEl.style.display = 'none';
+                }
+            }
+        }
+
+
+        // ===== Init =====
+        loadLanguages();
     </script>
 </body>
 </html>
-
