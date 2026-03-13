@@ -46,6 +46,8 @@ def analyze_video():
                         "quality": f'{f["height"]}p',
                         "url": f.get('url'),
                         "title": info.get("title")
+                        "url": f.get('url'),
+                        "title": info.get("title")
                     })
             formats = filter_formats(formats)
 
