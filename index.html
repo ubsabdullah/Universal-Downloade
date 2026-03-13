@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- <title>UB-SASA Downloads | تحميلات يو بس ساسا</title> -->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- <title>UB-SASA Downloads | تحميلات يو بس ساسا</title> -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --primary: #6366f1; --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); }
@@ -81,55 +79,6 @@
             </div>
         </div>
     </div>
-
-    <style>
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .format-card {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 18px;
-            border-radius: 16px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-        .format-card:hover {
-            background: rgba(255,255,255,0.12);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
-        .format-card:active { transform: scale(0.98); }
-        .format-card.downloading {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-        .format-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-            background: var(--primary);
-            color: #000;
-        }
-        .format-ext {
-            font-size: 12px;
-            opacity: 0.5;
-            text-transform: uppercase;
-        }
-        .download-icon {
-            font-size: 18px;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-        }
-        .format-card:hover .download-icon { opacity: 1; }
-
-    </style>
 
     <style>
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -273,142 +222,6 @@
         // ===== Core App Logic =====
 
         async function analyze() {
-            const url = document.getElementById('urlInput').value.trim();
-            if (!url) return alert(t('empty_url'));
-
-            currentUrl = url;
-
-            document.getElementById('loading').classList.remove('hidden');
-            document.getElementById('result').classList.add('hidden');
-            document.getElementById('downloadStatus').classList.add('hidden');
-            document.getElementById('analyzeBtn').disabled = true;
-            document.getElementById('analyzeBtn').style.opacity = '0.5';
-
-            try {
-                const response = await fetch('/analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
-                });
-
-                if (!response.ok) throw new Error(t('analyze_error'));
-
-                const data = await response.json();
-                title = data.title || 'video';
-                displayFormats(data);
-            } catch (error) {
-                alert(t('error_prefix') + ': ' + error.message);
-            } finally {
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('analyzeBtn').disabled = false;
-                document.getElementById('analyzeBtn').style.opacity = '1';
-            }
-        }
-
-        function displayFormats(data) {
-            const thumb = document.getElementById('thumb');
-            const title = document.getElementById('title');
-
-            if (data.thumbnail) {
-                thumb.src = data.thumbnail;
-                thumb.classList.remove('hidden');
-            } else {
-                thumb.classList.add('hidden');
-            }
-
-            title.textContent = data.title || t('no_title');
-
-            const container = document.getElementById('formatCards');
-            container.innerHTML = '';
-
-            if (!data.formats || data.formats.length === 0) {
-                container.innerHTML = `<p class="text-sm opacity-50 text-center py-4">${t('no_formats')}</p>`;
-                document.getElementById('result').classList.remove('hidden');
-                return;
-            }
-
-            data.formats.forEach((fmt) => {
-                const card = document.createElement('div');
-                card.className = 'format-card';
-                card.innerHTML = `
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <span class="format-badge">${fmt.quality}</span>
-                        <span class="format-ext">${fmt.ext}</span>
-                    </div>
-                    <span class="download-icon">⬇️</span>
-                `;
-                card.addEventListener('click', () => downloadVideo(card, fmt));
-                container.appendChild(card);
-            });
-
-            document.getElementById('result').classList.remove('hidden');
-        }
-
-        async function downloadVideo(card, fmt) {
-            // Disable only this card
-            card.classList.add('downloading');
-
-            // Replace the download icon with a per-card spinner + status
-            const iconEl = card.querySelector('.download-icon');
-            const originalIcon = iconEl.innerHTML;
-            iconEl.innerHTML = `<div style="width:18px;height:18px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;"></div>`;
-
-            // Show global status too for the latest download
-            const statusEl = document.getElementById('downloadStatus');
-            const textEl = document.getElementById('downloadText');
-            const spinnerEl = document.getElementById('downloadSpinner');
-            statusEl.classList.remove('hidden');
-            textEl.textContent = t('download_status', { quality: fmt.quality });
-            spinnerEl.style.display = 'block';
-
-
-            console.log(fmt)
-            try {
-                let fmtCopy = { ...fmt, url: currentUrl, title: title }
-                const response = await fetch("/download_video", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(fmtCopy)
-                })
-
-                if (!response.ok) throw new Error(t('download_error'));
-                
-                let data = await response.json()
-                console.log("KJHAJSADLKASJDLKSAJDKSAJD ", data)
-                let filePath = data.filePath
-                console.log(filePath)
-                const a = document.createElement('a');
-                // a.href = `${window.location.href}download_video?url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent(title)}`;
-                a.href = filePath
-                console.log(a.href)
-                document.body.appendChild(a);
-                a.click()
-                document.body.removeChild(a)
-                // card.getElementByClassName('download-icon')[0].innerHTML = '✅';
-                iconEl.innerHTML = '✅';
-                iconEl.style.opacity = '1';
-
-
-            } catch (error) {
-                // Update THIS card's icon to show failure
-                iconEl.innerHTML = '❌';
-                iconEl.style.opacity = '1';
-            } finally {
-                card.classList.remove('downloading');
-                card.style.pointerEvents = 'none'; // prevent re-clicking a finished download
-
-                // Only hide global status if no other downloads are in progress
-                const stillDownloading = document.querySelectorAll('.format-card.downloading').length;
-                if (stillDownloading === 0) {
-                    textEl.textContent = t('download_success');
-                    spinnerEl.style.display = 'none';
-                }
-            }
-        }
-
-
-        // ===== Init =====
-        loadLanguages();
             const url = document.getElementById('urlInput').value.trim();
             if (!url) return alert(t('empty_url'));
 
